@@ -1,8 +1,6 @@
 const { matchers } = require('jest-json-schema');
 expect.extend(matchers);
 
-require('dotenv').config();
-
 const marketo = require('../marketo');
 
 const schema = {

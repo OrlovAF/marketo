@@ -3,12 +3,14 @@ const Marketo = require('node-marketo-rest');
 // Utils
 const csvToJSON = require('./csvToJSON');
 
-const marketoApi = new Marketo({
-    endpoint: process.env.ENDPOINT,
-    identity: process.env.IDENTITY,
-    clientId: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_SECRET,
-});
+// Configs
+const configs = require('./marketoConfig');
+
+const marketoApi = new Marketo(configs);
+
+const startAt = new Date();
+
+startAt.setDate(startAt.getHours() - 2);
 
 exports.getLeadsListJSON = (fields = [
     'email',
@@ -16,7 +18,7 @@ exports.getLeadsListJSON = (fields = [
     'updatedAt',
     'id'
 ], filter = {}, options = {}) => marketoApi.bulkLeadExtract.get(fields, {
-        staticListName: process.env.STATIC_LIST_NAME,
+        staticListName: configs.staticListName,
         ...filter
     }, options)
               .then((data) => {

@@ -1,0 +1,7 @@
+{
+  "endpoint": "https://443-SJB-737.mktorest.com/rest",
+  "identity": "https://443-SJB-737.mktorest.com/identity",
+  "clientId": "Client Id",
+  "clientSecret": "Client Secret",
+  "staticListName": "Test List"
+}

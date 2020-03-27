@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 const marketo = require('./marketo');
 const logger = require('./logger');
 
