@@ -4,11 +4,18 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "leads": "node getLeads",
+    "test": "jest"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "node-marketo-rest": "^1.0.0-beta-1"
+    "dotenv": "^8.2.0",
+    "jest-json-schema": "^2.1.0",
+    "node-marketo-rest": "^1.0.0-beta-1",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "jest": "^25.2.3"
   }
 }

@@ -1,5 +1,5 @@
 const csvJSON = (csv = '') => {
-    const lines = csv.split("\n");
+    const lines = csv.trim().split("\n");
 
     const [header, ...content] = lines;
 
