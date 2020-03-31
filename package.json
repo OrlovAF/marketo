@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "leads": "node getLeads",
+    "leadsAll": "node getAllLeads",
+    "leadsUpdated": "node getLeadsUpdatedAfter",
     "test": "jest"
   },
   "author": "",

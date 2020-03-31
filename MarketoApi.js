@@ -17,42 +17,54 @@ const defaultFields = [
     'id',
 ];
 
-class MarketoApi {
-    _data = [];
-    _csvData = '';
-
-    constructor({
-                    endpoint,
-                    identity,
-                    clientId,
-                    clientSecret,
-                }) {
-        this.marketo = new Marketo({
-            endpoint,
-            identity,
-            clientId,
-            clientSecret,
-        });
+const defaultOptions = {
+    columnHeaderNames: {
+        company: 'account_name',
+        email: 'email',
+        leadSource: 'external_lead_source',
+        website: 'website',
+        createdAt: 'created_date',
+        updatedAt: 'last_modified_date',
+        id: 'external_id',
     }
+};
 
-    fetchMonthlyLeadsDataAsCsv = (
+function MarketoApi({
+        endpoint,
+        identity,
+        clientId,
+        clientSecret,
+    }) {
+    const marketo = new Marketo({
+        endpoint,
+        identity,
+        clientId,
+        clientSecret,
+    });
+
+    let _data = [];
+    let _csvData = '';
+
+    this.fetchMonthlyLeadsDataAsCsv = (
         fields = defaultFields,
         filter = {},
-    ) => this.marketo.bulkLeadExtract.get(fields, filter).then((data) => {
+        options = {},
+    ) => marketo.bulkLeadExtract.get(fields, filter, options).then((data) => {
         const [{ exportId }] = data.result;
 
-        return this.marketo.bulkLeadExtract.file(exportId);
+        return marketo.bulkLeadExtract.file(exportId);
     });
 
     /*
     * Fetch data from the Marketo month by month until response returns empty data
     **/
-    fetchAllLeads = (
+    this.fetchAllLeads = (
         fields = defaultFields,
-        workersConcurrent = 3,
-        emptyMonthsDataBeforeStop = 3,
+        options = defaultOptions,
+        workersConcurrent = 1,
+        emptyMonthsDataBeforeStop = 1, // Todo: Set to 3
     ) => new Promise((resolve, reject) => {
-        const queue = new Queue(this._worker(fields), { concurrent: workersConcurrent });
+        const queue = new Queue(_worker(fields, options), { concurrent: workersConcurrent });
 
         let emptyResultsCount = 0;
         let lastIndex = 0;
@@ -69,9 +81,9 @@ class MarketoApi {
             if (emptyResultsCount >= emptyMonthsDataBeforeStop) {
                 queue.destroy();
 
-                this._data = csvToJSON(this._csvData);
+                _data = csvToJSON(_csvData);
 
-                resolve(this._data);
+                resolve(_data);
             }
 
             createJobsData(1, lastIndex).forEach((workerData) => {
@@ -80,9 +92,11 @@ class MarketoApi {
                 lastIndex += 1;
             });
 
-            if (!this._csvData.length && isContentExists) {
+            if (!_csvData.length && isContentExists) {
+                _csvData = data.trim();
 
-                this._csvData = data.trim();
+                emptyResultsCount = 0;
+
                 return;
 
             }
@@ -93,7 +107,9 @@ class MarketoApi {
                 return;
             }
 
-            this._csvData = this._csvData.concat('\n', content.join('\n'));
+            _csvData = _csvData.concat('\n', content.join('\n'));
+
+            emptyResultsCount = 0;
         });
 
         queue.on('task_failed', (taskId, err, stats) => {
@@ -113,13 +129,13 @@ class MarketoApi {
     });
 
     // Fetch data Worker
-    _worker = (fields) => ({ filter, index }, cb) => {
+    const _worker = (fields, options) => ({ filter, index }, cb) => {
         logger.log({
             level: 'info',
             message: `Marketo started worker for the filter: ${JSON.stringify(filter)}`,
         });
 
-        return this.fetchMonthlyLeadsDataAsCsv(fields, filter).then((data) => {
+        return this.fetchMonthlyLeadsDataAsCsv(fields, filter, options).then((data) => {
             cb(null, { data, index });
         }).catch((error) => {
             cb(error);
@@ -127,15 +143,44 @@ class MarketoApi {
     };
 
     // Getters
-    getDataAsCsv = () => this._csvData;
+    this.getDataAsCsv = () => _csvData;
 
-    getDataAsJSON = () => this._data;
+    this.getDataAsJSON = () => _data;
 
-    getLeadsUpdatedAfter = (date = new Date()) => {
-        return this._data.filter(({ updatedAt }) => {
-            return updatedAt && moment(updatedAt).isAfter(date);
+    this.getLeadsUpdatedAfter = (date = new Date()) => {
+        return _data.filter(({ last_modified_date }) => {
+            return last_modified_date && moment(last_modified_date).isAfter(date);
         });
     };
 }
 
-module.exports = MarketoApi;
+const getMarketoData = (
+    endpoint,
+    identity,
+    clientId,
+    clientSecret,
+    isAll = true,
+    lastUpdateTime = new Date()
+) => {
+    const marketo = new MarketoApi({
+        endpoint,
+        identity,
+        clientId,
+        clientSecret
+    });
+
+    return marketo.fetchAllLeads().then((result) => {
+        if (!isAll && lastUpdateTime) {
+            return marketo.getLeadsUpdatedAfter(lastUpdateTime);
+        }
+
+        return result;
+    })
+};
+
+
+
+module.exports = {
+    MarketoApi,
+    getMarketoData
+};
