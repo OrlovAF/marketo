@@ -1,17 +1,13 @@
-const marketo = require('./marketo');
+const MarketoApi = require('./MarketoApi');
 const logger = require('./logger');
+const fs = require('fs');
 
-const fields = [
-    'company',
-    'email',
-    'leadSource',
-    'website',
-    'createdAt',
-    'updatedAt',
-    'id',
-];
+const configs = require('./marketoConfig');
 
-marketo.getLeadsListJSON(fields).then((result) => {
+const marketoApi = new MarketoApi(configs);
+
+marketoApi.fetchAllLeads().then((result) => {
+
     console.log(result);
 
     logger.log({
@@ -19,6 +15,7 @@ marketo.getLeadsListJSON(fields).then((result) => {
         message: 'Leads list successfully downloaded.'
     });
 }).catch((error) => {
+    console.log(error);
     logger.log({
         level: 'error',
         message: `Error occurred while a Leads fetching process. ${JSON.stringify(error)}`
