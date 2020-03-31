@@ -1,6 +1,5 @@
 const MarketoApi = require('./MarketoApi');
 const logger = require('./logger');
-const fs = require('fs');
 
 const configs = require('./marketoConfig');
 
@@ -15,7 +14,6 @@ marketoApi.fetchAllLeads().then((result) => {
         message: 'Leads list successfully downloaded.'
     });
 }).catch((error) => {
-    console.log(error);
     logger.log({
         level: 'error',
         message: `Error occurred while a Leads fetching process. ${JSON.stringify(error)}`

@@ -21,11 +21,24 @@ class MarketoApi {
     _data = [];
     _csvData = '';
 
-    constructor({ endpoint, identity, clientId, clientSecret }) {
-        this.marketo = new Marketo({ endpoint, identity, clientId, clientSecret });
+    constructor({
+                    endpoint,
+                    identity,
+                    clientId,
+                    clientSecret,
+                }) {
+        this.marketo = new Marketo({
+            endpoint,
+            identity,
+            clientId,
+            clientSecret,
+        });
     }
 
-    fetchMonthlyLeadsDataAsCsv = (fields = defaultFields, filter = {}) => this.marketo.bulkLeadExtract.get(fields, filter).then((data) => {
+    fetchMonthlyLeadsDataAsCsv = (
+        fields = defaultFields,
+        filter = {},
+    ) => this.marketo.bulkLeadExtract.get(fields, filter).then((data) => {
         const [{ exportId }] = data.result;
 
         return this.marketo.bulkLeadExtract.file(exportId);
@@ -34,7 +47,11 @@ class MarketoApi {
     /*
     * Fetch data from the Marketo month by month until response returns empty data
     **/
-    fetchAllLeads = (fields = defaultFields, workersConcurrent = 3, emptyMonthsDataBeforeStop = 3) => new Promise((resolve, reject) => {
+    fetchAllLeads = (
+        fields = defaultFields,
+        workersConcurrent = 3,
+        emptyMonthsDataBeforeStop = 3,
+    ) => new Promise((resolve, reject) => {
         const queue = new Queue(this._worker(fields), { concurrent: workersConcurrent });
 
         let emptyResultsCount = 0;
@@ -46,7 +63,7 @@ class MarketoApi {
 
             logger.log({
                 level: 'info',
-                message: `Marketo data part downloaded success. Content rows count: ${content.length}`
+                message: `Marketo data part downloaded success. Content rows count: ${content.length}`,
             });
 
             if (emptyResultsCount >= emptyMonthsDataBeforeStop) {
@@ -99,7 +116,7 @@ class MarketoApi {
     _worker = (fields) => ({ filter, index }, cb) => {
         logger.log({
             level: 'info',
-            message: `Marketo started worker for the filter: ${JSON.stringify(filter)}`
+            message: `Marketo started worker for the filter: ${JSON.stringify(filter)}`,
         });
 
         return this.fetchMonthlyLeadsDataAsCsv(fields, filter).then((data) => {
@@ -116,9 +133,9 @@ class MarketoApi {
 
     getLeadsUpdatedAfter = (date = new Date()) => {
         return this._data.filter(({ updatedAt }) => {
-            return updatedAt &&  moment(updatedAt).isAfter(date);
+            return updatedAt && moment(updatedAt).isAfter(date);
         });
-    }
+    };
 }
 
 module.exports = MarketoApi;
