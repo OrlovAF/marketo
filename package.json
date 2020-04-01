@@ -14,6 +14,7 @@
     "better-queue": "^3.8.10",
     "moment": "^2.24.0",
     "node-marketo-rest": "^1.0.0-beta-1",
+    "request-promise": "^4.2.5",
     "winston": "^3.2.1"
   },
   "devDependencies": {

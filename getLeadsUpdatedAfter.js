@@ -9,12 +9,12 @@ const {
     clientSecret
 } = require('./marketoConfig');
 
-const oneDayAgo = new Date();
-oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+const timeInPast = new Date();
+timeInPast.setDate(timeInPast.getDate() - 9);
 
-getMarketoData(endpoint, identity, clientId, clientSecret, false, oneDayAgo).then((result) => {
+getMarketoData(endpoint, identity, clientId, clientSecret, false, timeInPast).then((result) => {
 
-    console.log(`Leads updated after ${oneDayAgo.toISOString()}`, result);
+    console.log(`Leads updated after ${timeInPast.toISOString()}`, result);
 
     fs.writeFileSync('resultUpdated.json', JSON.stringify(result));
 
